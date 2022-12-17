@@ -19,6 +19,17 @@ type Passenger struct {
 	Password  string `json:"Password"`
 }
 
+type Driver struct {
+	Username  string `json:"Username"`
+	FirstName string `json:"FirstName"`
+	LastName  string `json:"LastName"`
+	PhoneNo   int    `json:"PhoneNo"`
+	Email     string `json:"Email"`
+	Password  string `json:"Password"`
+	IDNo      string `json:"IDNo"`
+	LicenseNo string `json:"LicenseNo"`
+}
+
 func main() {
 outer:
 	for {
@@ -39,7 +50,7 @@ outer:
 			fmt.Println("Choose User Type\n",
 				"1. Create Passenger Account\n",
 				"2. Create Driver Account\n",
-				"0. Quit")
+				"0. Back")
 			fmt.Print("Enter an option: ")
 
 			var choice2 int
@@ -55,6 +66,7 @@ outer:
 		case 2: //update passenger info
 			updatePassenger()
 		case 3: //update driver info
+			updateDriver()
 		case 0: //quit
 			fmt.Println("Thank you for using RideShare, Goodbye!")
 			break outer
@@ -108,8 +120,60 @@ func createPassenger() { //create a new Passenger Account
 	}
 }
 
-func createDriver() {
-	fmt.Println("driver success")
+func createDriver() { //create a new Driver Account
+	var newDriver Driver
+
+	fmt.Print("Enter Username: ")
+	reader0 := bufio.NewReader(os.Stdin)
+	input0, _ := reader0.ReadString('\n')
+	newDriver.Username = strings.TrimSpace(input0)
+
+	fmt.Print("Enter First Name: ")
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	newDriver.FirstName = strings.TrimSpace(input)
+
+	fmt.Print("Enter Last Name: ")
+	reader2 := bufio.NewReader(os.Stdin)
+	input2, _ := reader2.ReadString('\n')
+	newDriver.LastName = strings.TrimSpace(input2)
+
+	fmt.Print("Enter Phone Number: ")
+	fmt.Scanf("%d\n", &(newDriver.PhoneNo))
+
+	fmt.Print("Enter Email: ")
+	reader3 := bufio.NewReader(os.Stdin)
+	input3, _ := reader3.ReadString('\n')
+	newDriver.Email = strings.TrimSpace(input3)
+
+	fmt.Print("Enter Password: ")
+	reader4 := bufio.NewReader(os.Stdin)
+	input4, _ := reader4.ReadString('\n')
+	newDriver.Password = strings.TrimSpace(input4)
+
+	fmt.Print("Enter NRIC: ")
+	reader5 := bufio.NewReader(os.Stdin)
+	input5, _ := reader5.ReadString('\n')
+	newDriver.IDNo = strings.TrimSpace(input5)
+
+	fmt.Print("Enter Car License Number: ")
+	reader6 := bufio.NewReader(os.Stdin)
+	input6, _ := reader6.ReadString('\n')
+	newDriver.LicenseNo = strings.TrimSpace(input6)
+
+	jsonString, _ := json.Marshal(newDriver)
+	resbody := bytes.NewBuffer(jsonString)
+
+	client := &http.Client{}
+	if req, err := http.NewRequest(http.MethodPost, "http://localhost:5000/api/v1/driver/"+newDriver.Username, resbody); err == nil {
+		if res, err := client.Do(req); err == nil {
+			if res.StatusCode == 202 {
+				fmt.Println("Account for", newDriver.Username, "created successfully")
+			} else {
+				fmt.Println("Error - Username exists!")
+			}
+		}
+	}
 }
 
 func updatePassenger() { //update an existing Passenger Account
@@ -151,6 +215,57 @@ func updatePassenger() { //update an existing Passenger Account
 		if res, err := client.Do(req); err == nil {
 			if res.StatusCode == 202 {
 				fmt.Println("Account for", newPassenger.Username, "updated successfully")
+			} else {
+				fmt.Println("Error - Username does not exists!")
+			}
+		}
+	}
+}
+
+func updateDriver() { //update an existing Driver Account
+	var newDriver Driver
+
+	fmt.Print("Enter Username: ")
+	reader0 := bufio.NewReader(os.Stdin)
+	input0, _ := reader0.ReadString('\n')
+	newDriver.Username = strings.TrimSpace(input0)
+
+	fmt.Print("Update First Name: ")
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	newDriver.FirstName = strings.TrimSpace(input)
+
+	fmt.Print("Update Last Name: ")
+	reader2 := bufio.NewReader(os.Stdin)
+	input2, _ := reader2.ReadString('\n')
+	newDriver.LastName = strings.TrimSpace(input2)
+
+	fmt.Print("Update Phone Number: ")
+	fmt.Scanf("%d\n", &(newDriver.PhoneNo))
+
+	fmt.Print("Update Email: ")
+	reader3 := bufio.NewReader(os.Stdin)
+	input3, _ := reader3.ReadString('\n')
+	newDriver.Email = strings.TrimSpace(input3)
+
+	fmt.Print("Update Password: ")
+	reader4 := bufio.NewReader(os.Stdin)
+	input4, _ := reader4.ReadString('\n')
+	newDriver.Password = strings.TrimSpace(input4)
+
+	fmt.Print("Update Car License Number: ")
+	reader6 := bufio.NewReader(os.Stdin)
+	input6, _ := reader6.ReadString('\n')
+	newDriver.LicenseNo = strings.TrimSpace(input6)
+
+	jsonString, _ := json.Marshal(newDriver)
+	resbody := bytes.NewBuffer(jsonString)
+
+	client := &http.Client{}
+	if req, err := http.NewRequest(http.MethodPut, "http://localhost:5000/api/v1/driver/"+newDriver.Username, resbody); err == nil {
+		if res, err := client.Do(req); err == nil {
+			if res.StatusCode == 202 {
+				fmt.Println("Account for", newDriver.Username, "updated successfully")
 			} else {
 				fmt.Println("Error - Username does not exists!")
 			}
