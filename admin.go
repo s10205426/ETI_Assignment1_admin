@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -30,6 +31,20 @@ type Driver struct {
 	LicenseNo string `json:"LicenseNo"`
 }
 
+type CarTrip struct {
+	ID                int    `json:"ID"`
+	PassengerUsername string `json:"PassengerUsername"`
+	DriverUsername    string `json:"DriverUsername"`
+	Pickup            string `json:"Pickup"`
+	Dropoff           string `json:"Dropoff"`
+	PickupTime        string `json:"PickupTime"`
+	IsCompleted       string `json:"IsCompleted"`
+}
+
+type CarTrips struct {
+	CarTrips map[string]CarTrip `json:"CarTrips"`
+}
+
 func main() {
 outer:
 	for {
@@ -38,6 +53,7 @@ outer:
 			"1. Create Account\n",
 			"2. Update Passenger Information\n",
 			"3. Update Driver Information\n",
+			"4. Display all trips taken\n",
 			"0. Quit")
 		fmt.Print("Enter an option: ")
 
@@ -67,9 +83,45 @@ outer:
 			updatePassenger()
 		case 3: //update driver info
 			updateDriver()
+		case 4: //display all trips taken by a passenger
+			displayAllTrips()
 		case 0: //quit
 			fmt.Println("Thank you for using RideShare, Goodbye!")
 			break outer
+		}
+	}
+}
+
+func displayAllTrips() {
+	var newCarTrip CarTrip
+
+	fmt.Print("Enter Username: ") //retrieve username to know which passenger car trips are to be displayed
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	newCarTrip.PassengerUsername = strings.TrimSpace(input)
+
+	jsonString, _ := json.Marshal(newCarTrip)
+	resbody := bytes.NewBuffer(jsonString)
+
+	client := &http.Client{}
+	if req, err := http.NewRequest(http.MethodGet, "http://localhost:5000/api/v1/cartrip/"+newCarTrip.PassengerUsername, resbody); err == nil {
+		if res, err := client.Do(req); err == nil {
+			if body, err := ioutil.ReadAll(res.Body); err == nil {
+				if res.StatusCode == 404 { //checks if there is an error caused by invalid username
+					fmt.Println("Error - Username does not exists!")
+				} else {
+					var res CarTrips
+					json.Unmarshal(body, &res)
+
+					fmt.Print("\n=====================")
+					for _, v := range res.CarTrips {
+						fmt.Println("\nDriver's Username:", v.DriverUsername)
+						fmt.Println("Pickup:", v.Pickup)
+						fmt.Println("Dropoff:", v.Dropoff)
+						fmt.Println("Pickup Time:", v.PickupTime)
+					}
+				}
+			}
 		}
 	}
 }
