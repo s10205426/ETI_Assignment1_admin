@@ -30,6 +30,7 @@ type Driver struct {
 	Password  string `json:"Password"`
 	IDNo      string `json:"IDNo"`
 	LicenseNo string `json:"LicenseNo"`
+	IsBusy    string `json:"IsBusy"`
 }
 
 type CarTrip struct {
@@ -165,10 +166,10 @@ func createCarTrip() { //create a new Car Trip record
 				fmt.Println("Error - Username does not exists!")
 			}
 		} else {
-			fmt.Println("errrrrrrr")
+			fmt.Println("Error")
 		}
 	} else {
-		fmt.Println("errorororor")
+		fmt.Println("Error")
 	}
 }
 
@@ -258,6 +259,8 @@ func createDriver() { //create a new Driver Account
 	reader6 := bufio.NewReader(os.Stdin)
 	input6, _ := reader6.ReadString('\n')
 	newDriver.LicenseNo = strings.TrimSpace(input6)
+
+	newDriver.IsBusy = "0"
 
 	jsonString, _ := json.Marshal(newDriver)
 	resbody := bytes.NewBuffer(jsonString)
