@@ -56,6 +56,7 @@ outer:
 			"2. Update Passenger Information\n",
 			"3. Update Driver Information\n",
 			"4. Request trip\n",
+			"5. End car trip\n",
 			"6. Display all trips taken\n",
 			"0. Quit")
 		fmt.Print("Enter an option: ")
@@ -88,6 +89,8 @@ outer:
 			updateDriver()
 		case 4: //add car trip
 			createCarTrip()
+		case 5: //update status for car trip
+			endCarTrip()
 		case 6: //display all trips taken by a passenger
 			displayAllTrips()
 		case 0: //quit
@@ -113,7 +116,7 @@ func displayAllTrips() {
 		if res, err := client.Do(req); err == nil {
 			if body, err := ioutil.ReadAll(res.Body); err == nil {
 				if res.StatusCode == 404 { //checks if there is an error caused by invalid username
-					fmt.Println("Error - Username does not exists!")
+					fmt.Println("Error - No recorded rides for this User yet!")
 				} else {
 					var res CarTrips
 					json.Unmarshal(body, &res)
@@ -277,6 +280,29 @@ func createDriver() { //create a new Driver Account
 	}
 }
 
+func endCarTrip() {
+	var newCarTrip CarTrip
+
+	fmt.Print("Enter Username of your Passenger: ")
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	newCarTrip.PassengerUsername = strings.TrimSpace(input)
+
+	jsonString, _ := json.Marshal(newCarTrip)
+	resbody := bytes.NewBuffer(jsonString)
+
+	client := &http.Client{}
+	if req, err := http.NewRequest(http.MethodPut, "http://localhost:5000/api/v1/cartrip/"+newCarTrip.PassengerUsername, resbody); err == nil {
+		if res, err := client.Do(req); err == nil {
+			if res.StatusCode == 202 {
+				fmt.Println("Car Trip for", newCarTrip.PassengerUsername, "has ended")
+			} else {
+				fmt.Println("Error - Username does not exists!")
+			}
+		}
+	}
+}
+
 func updatePassenger() { //update an existing Passenger Account
 	var newPassenger Passenger
 
@@ -358,6 +384,8 @@ func updateDriver() { //update an existing Driver Account
 	reader6 := bufio.NewReader(os.Stdin)
 	input6, _ := reader6.ReadString('\n')
 	newDriver.LicenseNo = strings.TrimSpace(input6)
+
+	newDriver.IsBusy = "0"
 
 	jsonString, _ := json.Marshal(newDriver)
 	resbody := bytes.NewBuffer(jsonString)
