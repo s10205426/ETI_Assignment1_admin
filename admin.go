@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type Passenger struct {
@@ -53,7 +54,8 @@ outer:
 			"1. Create Account\n",
 			"2. Update Passenger Information\n",
 			"3. Update Driver Information\n",
-			"4. Display all trips taken\n",
+			"4. Request trip\n",
+			"6. Display all trips taken\n",
 			"0. Quit")
 		fmt.Print("Enter an option: ")
 
@@ -83,7 +85,9 @@ outer:
 			updatePassenger()
 		case 3: //update driver info
 			updateDriver()
-		case 4: //display all trips taken by a passenger
+		case 4: //add car trip
+			createCarTrip()
+		case 6: //display all trips taken by a passenger
 			displayAllTrips()
 		case 0: //quit
 			fmt.Println("Thank you for using RideShare, Goodbye!")
@@ -123,6 +127,48 @@ func displayAllTrips() {
 				}
 			}
 		}
+	}
+}
+
+func createCarTrip() { //create a new Car Trip record
+	var newCarTrip CarTrip
+
+	fmt.Print("Enter Username: ")
+	reader0 := bufio.NewReader(os.Stdin)
+	input0, _ := reader0.ReadString('\n')
+	newCarTrip.PassengerUsername = strings.TrimSpace(input0)
+
+	newCarTrip.DriverUsername = ""
+
+	fmt.Print("Enter Postal Code for Pick-up: ")
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	newCarTrip.Pickup = strings.TrimSpace(input)
+
+	fmt.Print("Enter Postal Code for Drop-off: ")
+	reader2 := bufio.NewReader(os.Stdin)
+	input2, _ := reader2.ReadString('\n')
+	newCarTrip.Dropoff = strings.TrimSpace(input2)
+
+	newCarTrip.PickupTime = time.Now().Format("2006-01-02 15:04:05")
+	newCarTrip.IsCompleted = "0"
+
+	jsonString, _ := json.Marshal(newCarTrip)
+	resbody := bytes.NewBuffer(jsonString)
+
+	client := &http.Client{}
+	if req, err := http.NewRequest(http.MethodPost, "http://localhost:5000/api/v1/cartrip/"+newCarTrip.PassengerUsername, resbody); err == nil {
+		if res, err := client.Do(req); err == nil {
+			if res.StatusCode == 202 {
+				fmt.Println("Request for ride succesfully created by", newCarTrip.PassengerUsername)
+			} else {
+				fmt.Println("Error - Username does not exists!")
+			}
+		} else {
+			fmt.Println("errrrrrrr")
+		}
+	} else {
+		fmt.Println("errorororor")
 	}
 }
 
